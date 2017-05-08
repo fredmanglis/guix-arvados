@@ -31,3 +31,25 @@
   (description "@code{linkchecker} check for broken links in web documents or full
 websites")
   (license l:gpl3)))
+
+(define-public python-epydoc
+  (package
+  (name "python-epydoc")
+  (version "3.0.1")
+  (source
+    (origin
+      (method url-fetch)
+      (uri (pypi-uri "epydoc" version))
+      (sha256
+        (base32
+          "1wj8dqbybhc97ml29wyyzn6r7sfbrkbmvqrr5g26xc7safw6j568"))))
+  (build-system python-build-system)
+  (propagated-inputs
+   `(("python-setuptools" ,python-setuptools)))
+  (arguments
+   `(#:tests? #f))
+  (home-page "http://epydoc.sourceforge.net")
+  (synopsis "Tool for generating API documentation for Python modules")
+  (description "@code{Epydoc} is a tool for generating API documentation for Python
+modules, based on their docstrings.")
+  (license l:expat)))
