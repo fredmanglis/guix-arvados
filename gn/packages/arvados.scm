@@ -18,6 +18,7 @@
   #:use-module (gnu packages web)
   #:use-module (gnu packages wget)
   #:use-module (guix build-system gnu)
+  #:use-module (guix download)
   #:use-module (guix git-download)
   #:use-module ((guix licenses) #:prefix l:)
   #:use-module (guix packages))
@@ -57,10 +58,51 @@
       ("python-virtualenv" ,python-virtualenv)
       ("wget" ,wget)))
    (inputs
-    `(("goamz"
+    `(("goamz-src"
        ,(origin
 	  (method git-fetch)
-	  (git-refer)))))
+	  (uri
+	   (git-reference
+	    (url "https://github.com/AdRoll/goamz.git")
+	    (commit "c5d7d9bd6c743fae44efc6c18450282022445ffc")))
+	  (sha256
+	   (base32
+	    "0yj1yqnskp1zcmihiq3yxlb9gm3w8ng5radvzjnc60r8vc78ihg2"))))
+      ("go-systemd-src"
+       ,(origin
+	  (method url-fetch)
+	  (uri "https://github.com/coreos/go-systemd/archive/v14.tar.gz")
+	  (sha256
+	   (base32
+	    "0219hmzbyvrlbarbrs66hpc076hi0hfbk6invvmzrp5x4lda96wx"))))
+      ("azure-sdk-for-go-src"
+       ,(origin
+	  (method url-fetch)
+	  (uri "https://github.com/curoverse/azure-sdk-for-go/archive/v1.2.tar.gz")
+	  (sha256
+	   (base32
+	    "0wqr5kbnpkjvzipwr6l6cjakpv3yhq4zdaimhiwyr6b3bvy5qvvm"))))
+      ("yaml-src"
+       ,(origin
+	  (method url-fetch)
+	  (uri "https://github.com/ghodss/yaml/archive/v1.0.0.tar.gz")
+	  (sha256
+	   (base32
+	    "0i6yjwh3j2184lwwi537q7z666wppf5s1kz1m894d53is5yb8xla"))))
+      ("mux-src"
+       ,(origin
+	  (method url-fetch)
+	  (uri "https://github.com/gorilla/mux/archive/v1.3.0.tar.gz")
+	  (sha256
+	   (base32
+	    "0k6kgz9qgl6c1zd271hnzp96yh2p2v0410k4dq0y1j3qg2qfd7m1"))))
+      ("logrus-src"
+       ,(origin
+	  (method url-fetch)
+	  (uri "https://github.com/sirupsen/logrus/archive/v0.11.5.tar.gz")
+	  (sha256
+	   (base32
+	    "0skwgvd2d36y9fipjpbkzin9l9pnl2gk1i3xsf27497db5g5mgyj"))))))
    (home-page "https://arvados.org/")
    (synopsis "It is a platform for data science with very large data sets")
    (description "The Arvados core is a platform for production data science with very
