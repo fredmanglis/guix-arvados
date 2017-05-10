@@ -12,6 +12,7 @@
   #:use-module (gnu packages linux)
   #:use-module (gnu packages lsof)
   #:use-module (gnu packages pkg-config)
+  #:use-module (gnu packages python)
   #:use-module (gnu packages ruby)
   #:use-module (gnu packages version-control)
   #:use-module (gnu packages web)
@@ -28,10 +29,13 @@
    (source
     (origin
      (method git-fetch)
-     (uri "https://github.com/curoverse/arvados.git")
+     (uri
+      (git-reference
+       (url "https://github.com/curoverse/arvados")
+       (commit "3b4325c210516d1f61838fb26e06e0a11c31ce6d")))
      (sha256
       (base32
-       "0ysckdi9dbg1i66fxs0cl09gbx97wz7y2ml69wyraij6vjl44s48"))))
+       "0sifyp2jnv11k8kz1vmhhyxqp2kinb1b0xa3zfdlinl9kjv5cybx"))))
    (build-system gnu-build-system)
    (propagated-inputs
     `(("go" ,go)
@@ -40,7 +44,7 @@
    (native-inputs
     `(("bison" ,bison)
       ("fuse" , fuse)
-      ("gettext" ,gettext)
+      ("gettext" ,gnu-gettext)
       ("git" ,git)
       ("gitolite" ,gitolite)
       ("graphviz" ,graphviz)
