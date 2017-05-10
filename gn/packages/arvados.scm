@@ -31,11 +31,11 @@
      (method git-fetch)
      (uri
       (git-reference
-       (url "https://github.com/curoverse/arvados")
+       (url "https://github.com/curoverse/arvados.git")
        (commit "3b4325c210516d1f61838fb26e06e0a11c31ce6d")))
      (sha256
       (base32
-       "0sifyp2jnv11k8kz1vmhhyxqp2kinb1b0xa3zfdlinl9kjv5cybx"))))
+       "10jz0j9gy521k1cffchwgvw0gjwhbi06cyj6bqwry7h9ybjyf8xi"))))
    (build-system gnu-build-system)
    (propagated-inputs
     `(("go" ,go)
@@ -56,6 +56,11 @@
       ("sudo" ,sudo)
       ("python-virtualenv" ,python-virtualenv)
       ("wget" ,wget)))
+   (inputs
+    `(("goamz"
+       ,(origin
+	  (method git-fetch)
+	  (git-refer)))))
    (home-page "https://arvados.org/")
    (synopsis "It is a platform for data science with very large data sets")
    (description "The Arvados core is a platform for production data science with very
