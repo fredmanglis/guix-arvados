@@ -17,15 +17,16 @@
   #:use-module (gnu packages version-control)
   #:use-module (gnu packages web)
   #:use-module (gnu packages wget)
+  #:use-module (guix build utils)
   #:use-module (guix build-system gnu)
   #:use-module (guix download)
   #:use-module (guix git-download)
   #:use-module ((guix licenses) #:prefix l:)
   #:use-module (guix packages))
 
-(define-public arvados
+(define-public arvados-keep
   (package
-   (name "arvados")
+   (name "arvados-keep")
    (version "0.0.0")
    (source
     (origin
@@ -38,25 +39,100 @@
       (base32
        "10jz0j9gy521k1cffchwgvw0gjwhbi06cyj6bqwry7h9ybjyf8xi"))))
    (build-system gnu-build-system)
+   (arguments
+    `(#:tests? #f
+      #:phases
+      (modify-phases %standard-phases
+	(add-before 'unpack 'setup-go-workspace
+	  (lambda* _
+	    (let* ((cwd (getcwd))
+		   (src_dir (string-append cwd "/gopath/src")))
+	      (let ((dirs '("/git.curoverse.com"
+			    "/github.com/AdRoll/goamz"
+			    "/github.com/coreos/go-systemd"
+			    "/github.com/curoverse/azure-sdk-for-go"
+			    "/github.com/ghodss/yaml"
+			    "/github.com/gorilla/mux"
+			    "/github.com/Sirupsen/logrus"
+			    "/gopkg.in/yaml.v2"
+			    "/gopkg.in/check.v1")))
+		(do ((i dirs (cdr i)))
+		    ((null? i))
+		  (mkdir-p (string-append src_dir (car i))))))))
+	(add-after 'unpack 'unpack-dependencies
+	  (lambda* (#:key inputs #:allow-other-keys)
+	    (let ((unpack (lambda (source target)
+			    (with-directory-excursion target
+			      (zero? (system* "tar" "xvf"
+					      (assoc-ref inputs source)
+					      "--strip-components=1")))))
+		  (cp-src (lambda (source target)
+			    (copy-recursively (assoc-ref inputs source) target)))
+		  (src_dir (string-append (getcwd) "/../gopath/src")))
+	      (and (unpack "go-systemd-src" (string-append src_dir "/github.com/coreos/go-systemd"))
+		   (unpack "yaml-src" (string-append src_dir "/github.com/ghodss/yaml"))
+		   (unpack "mux-src" (string-append src_dir "/github.com/gorilla/mux"))
+		   (unpack "logrus-src" (string-append src_dir "/github.com/Sirupsen/logrus"))
+		   (cp-src "goamz-src" (string-append src_dir "/github.com/AdRoll/goamz"))
+		   (cp-src "yaml.v2-src" (string-append src_dir "/gopkg.in/yaml.v2"))
+		   (cp-src "check.v1-src" (string-append src_dir "/gopkg.in/check.v1"))
+		   (cp-src "azure-sdk-for-go-src" (string-append
+						   src_dir
+						   "/github.com/curoverse/azure-sdk-for-go"))))))
+	(delete 'configure)
+	(add-before 'build 'copy-source
+	  (lambda* _
+	    (let ((cwd (getcwd)))
+	      (copy-recursively cwd
+				(string-append cwd "/../gopath/src/git.curoverse.com/arvados.git")))))
+	(replace 'build
+	  (lambda* (#:key outputs #:allow-other-keys)
+	    (let* ((gopath (string-append (getcwd) "/../gopath"))
+		   (src-dir (string-append gopath "/src"))
+		   (keep-src (string-append "git.curoverse.com"
+					    "/arvados.git/services"
+					    "/keepstore")))
+	      (setenv "GOPATH" gopath)
+	      (chdir (string-append gopath "/src"))
+	      (system* "go" "install" keep-src))))
+	(replace 'check
+		 (lambda* (#:key tests? #:allow-other-keys)
+		   (if tests?
+		       (let* ((cwd (getcwd))
+			      (test-dir (string-append cwd
+						       "/git.curoverse.com"
+						       "/arvados.git/services"
+						       "/keepstore")))
+			 (chdir test-dir)
+			 (system* "go" "test")))))
+	(replace 'install
+		 (lambda* (#:key outputs #:allow-other-keys)
+		   (let ((out (assoc-ref outputs "out"))
+			 (gopath (string-append (getcwd)
+						"/..")))
+		     (chdir gopath)
+		     (copy-recursively (string-append gopath "/bin")
+				       (string-append out "/bin"))))))))
    (propagated-inputs
     `(("go" ,go)
-      ("ruby" ,ruby)
-      ("bundler" ,bundler)))
-   (native-inputs
-    `(("bison" ,bison)
-      ("fuse" , fuse)
-      ("gettext" ,gnu-gettext)
-      ("git" ,git)
-      ("gitolite" ,gitolite)
-      ("graphviz" ,graphviz)
-      ("python-linkchecker" ,python-linkchecker)
-      ("lsof" ,lsof)
-      ("nginx" ,nginx)
-      ("postgresql" ,postgresql)
-      ("pkg-config" ,pkg-config)
-      ("sudo" ,sudo)
-      ("python-virtualenv" ,python-virtualenv)
-      ("wget" ,wget)))
+      ;; ("ruby" ,ruby)
+      ;; ("bundler" ,bundler)
+      ))
+   ;; (native-inputs
+   ;;  `(("bison" ,bison)
+   ;;    ("fuse" , fuse)
+   ;;    ("gettext" ,gnu-gettext)
+   ;;    ("git" ,git)
+   ;;    ("gitolite" ,gitolite)
+   ;;    ("graphviz" ,graphviz)
+   ;;    ("python-linkchecker" ,python-linkchecker)
+   ;;    ("lsof" ,lsof)
+   ;;    ("nginx" ,nginx)
+   ;;    ("postgresql" ,postgresql)
+   ;;    ("pkg-config" ,pkg-config)
+   ;;    ("sudo" ,sudo)
+   ;;    ("python-virtualenv" ,python-virtualenv)
+   ;;    ("wget" ,wget)))
    (inputs
     `(("goamz-src"
        ,(origin
@@ -77,11 +153,14 @@
 	    "0219hmzbyvrlbarbrs66hpc076hi0hfbk6invvmzrp5x4lda96wx"))))
       ("azure-sdk-for-go-src"
        ,(origin
-	  (method url-fetch)
-	  (uri "https://github.com/curoverse/azure-sdk-for-go/archive/v1.2.tar.gz")
+	  (method git-fetch)
+	  (uri
+	   (git-reference
+	    (url "https://github.com/curoverse/azure-sdk-for-go.git")
+	    (commit "1620af6b32398bfc91827ceae54a8cc1f55df04d")))
 	  (sha256
 	   (base32
-	    "0wqr5kbnpkjvzipwr6l6cjakpv3yhq4zdaimhiwyr6b3bvy5qvvm"))))
+	    "08fg7wyp1nlz2cfjx8p4phs586fxxabji5r082g5ixxsrq52b600"))))
       ("yaml-src"
        ,(origin
 	  (method url-fetch)
@@ -102,7 +181,29 @@
 	  (uri "https://github.com/sirupsen/logrus/archive/v0.11.5.tar.gz")
 	  (sha256
 	   (base32
-	    "0skwgvd2d36y9fipjpbkzin9l9pnl2gk1i3xsf27497db5g5mgyj"))))))
+	    "0skwgvd2d36y9fipjpbkzin9l9pnl2gk1i3xsf27497db5g5mgyj"))))
+      ("yaml.v2-src"
+       ,(origin
+	 (method git-fetch)
+	 (uri
+	  (git-reference
+	   ;; The url below gets the repo and checks out the
+	   ;; correct branch
+	   (url "https://gopkg.in/yaml.v2")
+	   (commit "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b")))
+	 (sha256
+	  (base32
+	   "1hj2ag9knxflpjibck0n90jrhsrqz7qvad4qnif7jddyapi9bqzl"))))
+      ("check.v1-src"
+       ,(origin
+	 (method git-fetch)
+	 (uri
+	  (git-reference
+	   (url "https://gopkg.in/check.v1")
+	   (commit "20d25e2804050c1cd24a7eea1e7a6447dd0e74ec")))
+	 (sha256
+	  (base32
+	   "0k1m83ji9l1a7ng8a7v40psbymxasmssbrrhpdv2wl4rhs0nc3np"))))))
    (home-page "https://arvados.org/")
    (synopsis "It is a platform for data science with very large data sets")
    (description "The Arvados core is a platform for production data science with very
