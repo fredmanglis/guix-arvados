@@ -1,0 +1,18 @@
+Listen: 127.0.0.1:4090
+LogFormat: "json"
+PIDFile: "/path/to/keepstore-lockfile"
+MaxBuffers: 20
+MaxRequests: 0
+BlobSigningKeyFile: "/path/to/blob_signing_key_file"
+RequireSignatures: false
+BlobSignatureTTL: 336h0m0s
+SystemAuthTokenFile: "/path/to/system_auth_token_file"
+EnableDelete: true
+TrashLifetime: 336h0m3s
+TrashCheckInterval: 24h0m0s
+Volumes:
+        - DirectoryReplication: 1
+          ReadOnly: false
+          Root: /tmp/keep
+          Serialize: true
+          Type: Directory
