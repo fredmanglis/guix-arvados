@@ -24,9 +24,9 @@
   #:use-module ((guix licenses) #:prefix l:)
   #:use-module (guix packages))
 
-(define-public arvados-keep
+(define-public arvados-keepstore
   (package
-   (name "arvados-keep")
+   (name "arvados-keepstore")
    (version "0.0.0")
    (source
     (origin
