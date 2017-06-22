@@ -223,3 +223,96 @@ supports versioning, reproducibilty, and provenance.
 	 (sha256
 	  (base32
 	   "0k1m83ji9l1a7ng8a7v40psbymxasmssbrrhpdv2wl4rhs0nc3np"))))))))
+
+(define-public arvados-keep-balance
+  (package
+   (inherit arvados-minimal)
+   (name "arvados-keep-balance")
+   (arguments
+    `(#:tests? #f
+      #:phases
+      (modify-phases
+       %standard-phases
+       (add-before
+	'unpack
+	'setup-go-workspace
+	  (lambda* _
+	    (let* ((cwd (getcwd))
+		   (src_dir (string-append cwd "/gopath/src")))
+	      (let ((dirs '("/github.com/ghodss/yaml"
+			    "/gopkg.in/yaml.v2")))
+		(do ((i dirs (cdr i)))
+		    ((null? i))
+		  (mkdir-p (string-append src_dir (car i))))))))
+       (add-after
+	'unpack
+	'unpack-dependencies
+	  (lambda* (#:key inputs #:allow-other-keys)
+	    (let ((unpack (lambda (source target)
+			    (with-directory-excursion target
+			      (zero? (system* "tar" "xvf"
+					      (assoc-ref inputs source)
+					      "--strip-components=1")))))
+		  (cp-src (lambda (source target)
+			    (copy-recursively (assoc-ref inputs source) target)))
+		  (src_dir (string-append (getcwd) "/../gopath/src")))
+	      (and (unpack "yaml-src"
+			   (string-append src_dir "/github.com/ghodss/yaml"))
+		   (cp-src "yaml.v2-src"
+			   (string-append src_dir "/gopkg.in/yaml.v2"))))))
+       (delete 'configure)
+	(add-before 'build 'copy-source
+	  (lambda* _
+	    (let ((cwd (getcwd)))
+	      (copy-recursively
+	       cwd
+	       (string-append
+		cwd
+		"/../gopath/src/git.curoverse.com/arvados.git")))))
+	(replace 'build
+	  (lambda* (#:key outputs #:allow-other-keys)
+	    (let* ((gopath (string-append (getcwd) "/../gopath"))
+		   (src-dir (string-append gopath "/src"))
+		   (keep-src (string-append "git.curoverse.com"
+					    "/arvados.git/services"
+					    "/keep-balance")))
+	      (setenv "GOPATH" gopath)
+	      (chdir (string-append gopath "/src"))
+	      (system* "go" "install" keep-src))))
+	(delete 'check)
+	(replace 'install
+		 (lambda* (#:key outputs #:allow-other-keys)
+		   (display "PWD:::::::::::::::::::")
+		   (display (getcwd))
+		   (newline)
+		   (let ((out (assoc-ref outputs "out"))
+			 (gopath (string-append (getcwd)
+						"/..")))
+		     (chdir gopath)
+		     (copy-recursively (string-append gopath "/bin")
+				       (string-append out "/bin")))))
+       )
+      )
+    )
+   (propagated-inputs
+    `(("go" ,go)))
+   (inputs
+    `(("yaml-src"
+       ,(origin
+	 (method url-fetch)
+	 (uri "https://github.com/ghodss/yaml/archive/v1.0.0.tar.gz")
+	 (sha256
+	  (base32
+	   "0i6yjwh3j2184lwwi537q7z666wppf5s1kz1m894d53is5yb8xla"))))
+      ("yaml.v2-src"
+       ,(origin
+	 (method git-fetch)
+	 (uri
+	  (git-reference
+	   ;; The url below gets the repo and checks out the
+	   ;; correct branch
+	   (url "https://gopkg.in/yaml.v2")
+	   (commit "cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b")))
+	 (sha256
+	  (base32
+	   "1hj2ag9knxflpjibck0n90jrhsrqz7qvad4qnif7jddyapi9bqzl"))))))))
