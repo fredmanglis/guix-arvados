@@ -24,7 +24,7 @@
   #:use-module ((guix licenses) #:prefix l:)
   #:use-module (guix packages))
 
-(define-public arvados-keepstore
+(define arvados-minimal
   (package
    (name "arvados-keepstore")
    (version "0.0.0")
@@ -39,6 +39,28 @@
       (base32
        "10jz0j9gy521k1cffchwgvw0gjwhbi06cyj6bqwry7h9ybjyf8xi"))))
    (build-system gnu-build-system)
+   (arguments
+    `(#:tests? #f))
+   (home-page "https://arvados.org/")
+   (synopsis "It is a platform for data science with very large data sets")
+   (description "The Arvados core is a platform for production data science with
+very large data sets.  It is made up of two major systems and a number of
+related services and components including APIs, SDKs, and visual tools.  The two
+major systems are:
+@enumerate
+@item Keep: Keep is a content-addressable storage system for managing and
+storing large collections of files with durable, cryptographically verifiable
+references and high-throughput processing.
+@item Crunch: Crunch is a containerized workflow engine for running complex,
+multi-part pipelines or workflows in a way that is flexible, scalable, and
+supports versioning, reproducibilty, and provenance.
+@end enumerate")
+   (license l:asl2.0)))
+
+(define-public arvados-keepstore
+  (package
+   (inherit arvados-minimal)
+   (name "arvados-keepstore")
    (arguments
     `(#:tests? #f
       #:phases
@@ -69,22 +91,35 @@
 		  (cp-src (lambda (source target)
 			    (copy-recursively (assoc-ref inputs source) target)))
 		  (src_dir (string-append (getcwd) "/../gopath/src")))
-	      (and (unpack "go-systemd-src" (string-append src_dir "/github.com/coreos/go-systemd"))
-		   (unpack "yaml-src" (string-append src_dir "/github.com/ghodss/yaml"))
-		   (unpack "mux-src" (string-append src_dir "/github.com/gorilla/mux"))
-		   (unpack "logrus-src" (string-append src_dir "/github.com/Sirupsen/logrus"))
-		   (cp-src "goamz-src" (string-append src_dir "/github.com/AdRoll/goamz"))
-		   (cp-src "yaml.v2-src" (string-append src_dir "/gopkg.in/yaml.v2"))
-		   (cp-src "check.v1-src" (string-append src_dir "/gopkg.in/check.v1"))
-		   (cp-src "azure-sdk-for-go-src" (string-append
-						   src_dir
-						   "/github.com/curoverse/azure-sdk-for-go"))))))
+	      (and (unpack "go-systemd-src"
+			   (string-append src_dir
+					  "/github.com/coreos/go-systemd"))
+		   (unpack "yaml-src"
+			   (string-append src_dir "/github.com/ghodss/yaml"))
+		   (unpack "mux-src"
+			   (string-append src_dir "/github.com/gorilla/mux"))
+		   (unpack "logrus-src"
+			   (string-append src_dir
+					  "/github.com/Sirupsen/logrus"))
+		   (cp-src "goamz-src"
+			   (string-append src_dir "/github.com/AdRoll/goamz"))
+		   (cp-src "yaml.v2-src"
+			   (string-append src_dir "/gopkg.in/yaml.v2"))
+		   (cp-src "check.v1-src"
+			   (string-append src_dir "/gopkg.in/check.v1"))
+		   (cp-src "azure-sdk-for-go-src"
+			   (string-append
+			    src_dir
+			    "/github.com/curoverse/azure-sdk-for-go"))))))
 	(delete 'configure)
 	(add-before 'build 'copy-source
 	  (lambda* _
 	    (let ((cwd (getcwd)))
-	      (copy-recursively cwd
-				(string-append cwd "/../gopath/src/git.curoverse.com/arvados.git")))))
+	      (copy-recursively
+	       cwd
+	       (string-append
+		cwd
+		"/../gopath/src/git.curoverse.com/arvados.git")))))
 	(replace 'build
 	  (lambda* (#:key outputs #:allow-other-keys)
 	    (let* ((gopath (string-append (getcwd) "/../gopath"))
@@ -114,25 +149,9 @@
 		     (copy-recursively (string-append gopath "/bin")
 				       (string-append out "/bin"))))))))
    (propagated-inputs
-    `(("go" ,go)
-      ;; ("ruby" ,ruby)
-      ;; ("bundler" ,bundler)
-      ))
-   ;; (native-inputs
-   ;;  `(("bison" ,bison)
-   ;;    ("fuse" , fuse)
-   ;;    ("gettext" ,gnu-gettext)
-   ;;    ("git" ,git)
-   ;;    ("gitolite" ,gitolite)
-   ;;    ("graphviz" ,graphviz)
-   ;;    ("python-linkchecker" ,python-linkchecker)
-   ;;    ("lsof" ,lsof)
-   ;;    ("nginx" ,nginx)
-   ;;    ("postgresql" ,postgresql)
-   ;;    ("pkg-config" ,pkg-config)
-   ;;    ("sudo" ,sudo)
-   ;;    ("python-virtualenv" ,python-virtualenv)
-   ;;    ("wget" ,wget)))
+    `(("go" ,go)))
+   (native-inputs
+    `(("python-wrapper" ,python-wrapper)))
    (inputs
     `(("goamz-src"
        ,(origin
@@ -203,18 +222,4 @@
 	   (commit "20d25e2804050c1cd24a7eea1e7a6447dd0e74ec")))
 	 (sha256
 	  (base32
-	   "0k1m83ji9l1a7ng8a7v40psbymxasmssbrrhpdv2wl4rhs0nc3np"))))))
-   (home-page "https://arvados.org/")
-   (synopsis "It is a platform for data science with very large data sets")
-   (description "The Arvados core is a platform for production data science with very
-large data sets.  It is made up of two major systems and a number of related services and
-components including APIs, SDKs, and visual tools.  The two major systems are:
-@enumerate
-@item Keep: Keep is a content-addressable storage system for managing and storing large
-collections of files with durable, cryptographically verifiable references and
-high-throughput processing.
-@item Crunch: Crunch is a containerized workflow engine for running complex, multi-part
-pipelines or workflows in a way that is flexible, scalable, and supports versioning,
-reproducibilty, and provenance.
-@end enumerate")
-   (license l:asl2.0)))
+	   "0k1m83ji9l1a7ng8a7v40psbymxasmssbrrhpdv2wl4rhs0nc3np"))))))))
