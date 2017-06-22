@@ -1,0 +1,9 @@
+Client:
+    APIHost: zzzzz.arvadosapi.com:443
+    AuthToken: xyzzy
+    Insecure: false
+KeepServiceTypes:
+    - disk
+RunPeriod: 600s
+CollectionBatchSize: 100000
+CollectionBuffers: 1000
