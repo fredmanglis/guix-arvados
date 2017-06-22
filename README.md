@@ -16,7 +16,7 @@ This repository is a sort of [GNU Guix](https://www.gnu.org/software/guix/) chan
 
 3. Install
 
-	`guix package --install=arvados-keep`
+	`guix package --install=arvados-keepstore`
 
 4. Now test that it was installed successfully:
 
