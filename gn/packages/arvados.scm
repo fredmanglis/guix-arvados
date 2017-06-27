@@ -24,6 +24,20 @@
   #:use-module ((guix licenses) #:prefix l:)
   #:use-module (guix packages))
 
+(define (build-make-dirs dirs)
+  `(lambda* _
+    (let* ((cwd (getcwd))
+	   (src_dir (string-append cwd "/gopath/src")))
+      (do ((i ,dirs (cdr i)))
+	  ((null? i))
+	(mkdir-p (string-append src_dir (car i)))))))
+
+(define (build-setup-go-workspace dirs)
+  `(add-before
+    'unpack
+    'setup-go-workspace
+    ,(build-make-dirs dirs)))
+
 (define arvados-minimal
   (package
    (name "arvados-keepstore")
@@ -64,23 +78,18 @@ supports versioning, reproducibilty, and provenance.
    (arguments
     `(#:tests? #f
       #:phases
-      (modify-phases %standard-phases
-	(add-before 'unpack 'setup-go-workspace
-	  (lambda* _
-	    (let* ((cwd (getcwd))
-		   (src_dir (string-append cwd "/gopath/src")))
-	      (let ((dirs '("/git.curoverse.com"
-			    "/github.com/AdRoll/goamz"
-			    "/github.com/coreos/go-systemd"
-			    "/github.com/curoverse/azure-sdk-for-go"
-			    "/github.com/ghodss/yaml"
-			    "/github.com/gorilla/mux"
-			    "/github.com/Sirupsen/logrus"
-			    "/gopkg.in/yaml.v2"
-			    "/gopkg.in/check.v1")))
-		(do ((i dirs (cdr i)))
-		    ((null? i))
-		  (mkdir-p (string-append src_dir (car i))))))))
+      (modify-phases
+       %standard-phases
+       ,(build-setup-go-workspace
+	 `'("/git.curoverse.com"
+	    "/github.com/AdRoll/goamz"
+	    "/github.com/coreos/go-systemd"
+	    "/github.com/curoverse/azure-sdk-for-go"
+	    "/github.com/ghodss/yaml"
+	    "/github.com/gorilla/mux"
+	    "/github.com/Sirupsen/logrus"
+	    "/gopkg.in/yaml.v2"
+	    "/gopkg.in/check.v1"))
 	(add-after 'unpack 'unpack-dependencies
 	  (lambda* (#:key inputs #:allow-other-keys)
 	    (let ((unpack (lambda (source target)
@@ -233,17 +242,8 @@ supports versioning, reproducibilty, and provenance.
       #:phases
       (modify-phases
        %standard-phases
-       (add-before
-	'unpack
-	'setup-go-workspace
-	  (lambda* _
-	    (let* ((cwd (getcwd))
-		   (src_dir (string-append cwd "/gopath/src")))
-	      (let ((dirs '("/github.com/ghodss/yaml"
-			    "/gopkg.in/yaml.v2")))
-		(do ((i dirs (cdr i)))
-		    ((null? i))
-		  (mkdir-p (string-append src_dir (car i))))))))
+       ,(build-setup-go-workspace `'("/github.com/ghodss/yaml"
+				     "/gopkg.in/yaml.v2"))
        (add-after
 	'unpack
 	'unpack-dependencies
@@ -282,7 +282,6 @@ supports versioning, reproducibilty, and provenance.
 	(delete 'check)
 	(replace 'install
 		 (lambda* (#:key outputs #:allow-other-keys)
-		   (display "PWD:::::::::::::::::::")
 		   (display (getcwd))
 		   (newline)
 		   (let ((out (assoc-ref outputs "out"))
