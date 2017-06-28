@@ -26,11 +26,11 @@
 
 (define (build-make-dirs dirs)
   `(lambda* _
-    (let* ((cwd (getcwd))
-	   (src_dir (string-append cwd "/gopath/src")))
-      (do ((i ,dirs (cdr i)))
-	  ((null? i))
-	(mkdir-p (string-append src_dir (car i)))))))
+     (let* ((cwd (getcwd))
+	    (src_dir (string-append cwd "/gopath/src")))
+       (do ((i ,dirs (cdr i)))
+	   ((null? i))
+	 (mkdir-p (string-append src_dir (car i)))))))
 
 (define (build-setup-go-workspace dirs)
   `(add-before
@@ -165,73 +165,82 @@ supports versioning, reproducibilty, and provenance.
 	    "/github.com/Sirupsen/logrus"
 	    "/gopkg.in/yaml.v2"
 	    "/gopkg.in/check.v1"))
-	(add-after 'unpack 'unpack-dependencies
-	  (lambda* (#:key inputs #:allow-other-keys)
-	    (let ((unpack (lambda (source target)
-			    (with-directory-excursion target
+       (add-after 'unpack 'unpack-dependencies
+		  (lambda* (#:key inputs #:allow-other-keys)
+		    (let ((unpack
+			   (lambda (source target)
+			     (with-directory-excursion
+			      target
 			      (zero? (system* "tar" "xvf"
 					      (assoc-ref inputs source)
 					      "--strip-components=1")))))
-		  (cp-src (lambda (source target)
-			    (copy-recursively (assoc-ref inputs source) target)))
-		  (src_dir (string-append (getcwd) "/../gopath/src")))
-	      (and (unpack "go-systemd-src"
-			   (string-append src_dir
-					  "/github.com/coreos/go-systemd"))
-		   (unpack "yaml-src"
-			   (string-append src_dir "/github.com/ghodss/yaml"))
-		   (unpack "mux-src"
-			   (string-append src_dir "/github.com/gorilla/mux"))
-		   (unpack "logrus-src"
-			   (string-append src_dir
-					  "/github.com/Sirupsen/logrus"))
-		   (cp-src "goamz-src"
-			   (string-append src_dir "/github.com/AdRoll/goamz"))
-		   (cp-src "yaml.v2-src"
-			   (string-append src_dir "/gopkg.in/yaml.v2"))
-		   (cp-src "check.v1-src"
-			   (string-append src_dir "/gopkg.in/check.v1"))
-		   (cp-src "azure-sdk-for-go-src"
-		   	   (string-append
-		   	    src_dir
-		   	    "/github.com/curoverse/azure-sdk-for-go"))))))
-	(delete 'configure)
-	(add-before 'build 'copy-source
-	  (lambda* _
-	    (let ((cwd (getcwd)))
-	      (copy-recursively
-	       cwd
-	       (string-append
-		cwd
-		"/../gopath/src/git.curoverse.com/arvados.git")))))
-	(replace 'build
-	  (lambda* (#:key outputs #:allow-other-keys)
-	    (let* ((gopath (string-append (getcwd) "/../gopath"))
-		   (src-dir (string-append gopath "/src"))
-		   (keep-src (string-append "git.curoverse.com"
-					    "/arvados.git/services"
-					    "/keepstore")))
-	      (setenv "GOPATH" gopath)
-	      (chdir (string-append gopath "/src"))
-	      (system* "go" "install" keep-src))))
-	(replace 'check
-		 (lambda* (#:key tests? #:allow-other-keys)
-		   (if tests?
-		       (let* ((cwd (getcwd))
-			      (test-dir (string-append cwd
-						       "/git.curoverse.com"
-						       "/arvados.git/services"
-						       "/keepstore")))
-			 (chdir test-dir)
-			 (system* "go" "test")))))
-	(replace 'install
-		 (lambda* (#:key outputs #:allow-other-keys)
-		   (let ((out (assoc-ref outputs "out"))
-			 (gopath (string-append (getcwd)
-						"/..")))
-		     (chdir gopath)
-		     (copy-recursively (string-append gopath "/bin")
-				       (string-append out "/bin"))))))))
+			  (cp-src (lambda (source target)
+				    (copy-recursively
+				     (assoc-ref inputs source) target)))
+			  (src_dir (string-append (getcwd) "/../gopath/src")))
+		      (and (unpack "go-systemd-src"
+				   (string-append
+				    src_dir
+				    "/github.com/coreos/go-systemd"))
+			   (unpack "yaml-src"
+				   (string-append
+				    src_dir "/github.com/ghodss/yaml"))
+			   (unpack "mux-src"
+				   (string-append
+				    src_dir "/github.com/gorilla/mux"))
+			   (unpack "logrus-src"
+				   (string-append
+				    src_dir
+				    "/github.com/Sirupsen/logrus"))
+			   (cp-src "goamz-src"
+				   (string-append
+				    src_dir "/github.com/AdRoll/goamz"))
+			   (cp-src "yaml.v2-src"
+				   (string-append src_dir "/gopkg.in/yaml.v2"))
+			   (cp-src "check.v1-src"
+				   (string-append src_dir "/gopkg.in/check.v1"))
+			   (cp-src
+			    "azure-sdk-for-go-src"
+			    (string-append
+			     src_dir
+			     "/github.com/curoverse/azure-sdk-for-go"))))))
+       (delete 'configure)
+       (add-before 'build 'copy-source
+		   (lambda* _
+		     (let ((cwd (getcwd)))
+		       (copy-recursively
+			cwd
+			(string-append
+			 cwd
+			 "/../gopath/src/git.curoverse.com/arvados.git")))))
+       (replace 'build
+		(lambda* (#:key outputs #:allow-other-keys)
+		  (let* ((gopath (string-append (getcwd) "/../gopath"))
+			 (src-dir (string-append gopath "/src"))
+			 (keep-src (string-append "git.curoverse.com"
+						  "/arvados.git/services"
+						  "/keepstore")))
+		    (setenv "GOPATH" gopath)
+		    (chdir (string-append gopath "/src"))
+		    (system* "go" "install" keep-src))))
+       (replace 'check
+		(lambda* (#:key tests? #:allow-other-keys)
+		  (if tests?
+		      (let* ((cwd (getcwd))
+			     (test-dir (string-append cwd
+						      "/git.curoverse.com"
+						      "/arvados.git/services"
+						      "/keepstore")))
+			(chdir test-dir)
+			(system* "go" "test")))))
+       (replace 'install
+		(lambda* (#:key outputs #:allow-other-keys)
+		  (let ((out (assoc-ref outputs "out"))
+			(gopath (string-append (getcwd)
+					       "/..")))
+		    (chdir gopath)
+		    (copy-recursively (string-append gopath "/bin")
+				      (string-append out "/bin"))))))))
    (propagated-inputs
     `(("go" ,go)))
    (native-inputs
@@ -258,54 +267,52 @@ supports versioning, reproducibilty, and provenance.
        ,(build-setup-go-workspace `'("/github.com/ghodss/yaml"
 				     "/gopkg.in/yaml.v2"))
        (add-after
-	'unpack
-	'unpack-dependencies
-	  (lambda* (#:key inputs #:allow-other-keys)
-	    (let ((unpack (lambda (source target)
-			    (with-directory-excursion target
-			      (zero? (system* "tar" "xvf"
-					      (assoc-ref inputs source)
-					      "--strip-components=1")))))
-		  (cp-src (lambda (source target)
-			    (copy-recursively (assoc-ref inputs source) target)))
-		  (src_dir (string-append (getcwd) "/../gopath/src")))
-	      (and (unpack "yaml-src"
-			   (string-append src_dir "/github.com/ghodss/yaml"))
-		   (cp-src "yaml.v2-src"
-			   (string-append src_dir "/gopkg.in/yaml.v2"))))))
+       	'unpack
+       	'unpack-dependencies
+	(lambda* (#:key inputs #:allow-other-keys)
+	  (let ((unpack (lambda (source target)
+			  (with-directory-excursion
+			   target
+			   (zero? (system* "tar" "xvf"
+					   (assoc-ref inputs source)
+					   "--strip-components=1")))))
+		(cp-src (lambda (source target)
+			  (copy-recursively (assoc-ref inputs source) target)))
+		(src_dir (string-append (getcwd) "/../gopath/src")))
+	    (and (unpack "yaml-src"
+			 (string-append src_dir "/github.com/ghodss/yaml"))
+		 (cp-src "yaml.v2-src"
+			 (string-append src_dir "/gopkg.in/yaml.v2"))))))
        (delete 'configure)
-	(add-before 'build 'copy-source
-	  (lambda* _
-	    (let ((cwd (getcwd)))
-	      (copy-recursively
-	       cwd
-	       (string-append
-		cwd
-		"/../gopath/src/git.curoverse.com/arvados.git")))))
-	(replace 'build
-	  (lambda* (#:key outputs #:allow-other-keys)
-	    (let* ((gopath (string-append (getcwd) "/../gopath"))
-		   (src-dir (string-append gopath "/src"))
-		   (keep-src (string-append "git.curoverse.com"
-					    "/arvados.git/services"
-					    "/keep-balance")))
-	      (setenv "GOPATH" gopath)
-	      (chdir (string-append gopath "/src"))
-	      (system* "go" "install" keep-src))))
-	(delete 'check)
-	(replace 'install
-		 (lambda* (#:key outputs #:allow-other-keys)
-		   (display (getcwd))
-		   (newline)
-		   (let ((out (assoc-ref outputs "out"))
-			 (gopath (string-append (getcwd)
-						"/..")))
-		     (chdir gopath)
-		     (copy-recursively (string-append gopath "/bin")
-				       (string-append out "/bin")))))
-       )
-      )
-    )
+       (add-before 'build 'copy-source
+		   (lambda* _
+		     (let ((cwd (getcwd)))
+		       (copy-recursively
+			cwd
+			(string-append
+			 cwd
+			 "/../gopath/src/git.curoverse.com/arvados.git")))))
+       (replace 'build
+		(lambda* (#:key outputs #:allow-other-keys)
+		  (let* ((gopath (string-append (getcwd) "/../gopath"))
+			 (src-dir (string-append gopath "/src"))
+			 (keep-src (string-append "git.curoverse.com"
+						  "/arvados.git/services"
+						  "/keep-balance")))
+		    (setenv "GOPATH" gopath)
+		    (chdir (string-append gopath "/src"))
+		    (system* "go" "install" keep-src))))
+       (delete 'check)
+       (replace 'install
+		(lambda* (#:key outputs #:allow-other-keys)
+		  (display (getcwd))
+		  (newline)
+		  (let ((out (assoc-ref outputs "out"))
+			(gopath (string-append (getcwd)
+					       "/..")))
+		    (chdir gopath)
+		    (copy-recursively (string-append gopath "/bin")
+				      (string-append out "/bin"))))))))
    (propagated-inputs
     `(("go" ,go)))
    (inputs
