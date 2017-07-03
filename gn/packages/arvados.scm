@@ -19,6 +19,7 @@
   #:use-module (gnu packages wget)
   #:use-module (guix build utils)
   #:use-module (guix build-system gnu)
+  #:use-module (guix build-system ruby)
   #:use-module (guix download)
   #:use-module (guix git-download)
   #:use-module ((guix licenses) #:prefix l:)
@@ -116,7 +117,7 @@
 (define arvados-minimal
   (package
    (name "arvados-keepstore")
-   (version "0.0.0")
+   (version "0.1")
    (source
     (origin
      (method git-fetch)
@@ -318,3 +319,30 @@ supports versioning, reproducibilty, and provenance.
    (inputs
     `(,(build-yaml-src)
       ,(build-yaml.v2-src)))))
+
+(define-public arvados-cli
+  (package
+   (inherit arvados-minimal)
+   (name "arvados-cli")
+   (build-system ruby-build-system)
+   (arguments
+    `(#:tests? #f
+      #:phases
+      (modify-phases
+       %standard-phases
+       (add-before
+	'patch-usr-bin-file
+	'change-to-cli-directory
+	(lambda* _
+	  (chdir (string-append (getcwd) "/sdk/cli/"))))
+       (add-before
+	'patch-usr-bin-file
+	'patch-gemspec
+	(lambda* (#:key inputs #:allow-other-keys)
+	  (substitute* "arvados-cli.gemspec"
+		       (("/usr/bin/git") (which "git"))
+		       (("0.1.20150128223554") "0.1.19700101000000")))))))
+   (propagated-inputs
+    `(("ruby" ,ruby)))
+   (native-inputs
+    `(("git" ,git)))))
