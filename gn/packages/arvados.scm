@@ -3,6 +3,7 @@
 
 (define-module (gn packages arvados)
   #:use-module (gn packages python)
+  #:use-module (gn packages ruby)
   #:use-module (gnu packages admin)
   #:use-module (gnu packages bison)
   #:use-module (gnu packages databases)
@@ -325,6 +326,11 @@ supports versioning, reproducibilty, and provenance.
    (inherit arvados-minimal)
    (name "arvados-cli")
    (build-system ruby-build-system)
+   (propagated-inputs
+    `(("ruby" ,ruby)
+      ("ruby-google-api-client" ,ruby-google-api-client)))
+   (native-inputs
+    `(("git" ,git)))
    (arguments
     `(#:tests? #f
       #:phases
@@ -341,8 +347,8 @@ supports versioning, reproducibilty, and provenance.
 	(lambda* (#:key inputs #:allow-other-keys)
 	  (substitute* "arvados-cli.gemspec"
 		       (("/usr/bin/git") (which "git"))
-		       (("0.1.20150128223554") "0.1.19700101000000")))))))
-   (propagated-inputs
-    `(("ruby" ,ruby)))
-   (native-inputs
-    `(("git" ,git)))))
+		       ;;(("0.1.20150128223554") "0.1.19700101000000")
+		       (("~> 0.6") ">= 0.6")
+		       (("<0.8.9") ">0.8.9")
+		       (("s.add_runtime_dependency 'arvados', '~> 0.1', '>= 0.1.20150128223554'") ""))
+	  )))))))
