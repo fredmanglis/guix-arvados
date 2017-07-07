@@ -351,5 +351,6 @@ supports versioning, reproducibilty, and provenance.
 		       ;;(("0.1.20150128223554") "0.1.19700101000000")
 		       (("~> 0.6") ">= 0.6")
 		       (("<0.8.9") ">0.8.9")
+		       (("< 5") ">= 5")
 		       (("s.add_runtime_dependency 'arvados', '~> 0.1', '>= 0.1.20150128223554'") ""))
 	  )))))))
