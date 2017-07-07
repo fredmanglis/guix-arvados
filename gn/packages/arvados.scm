@@ -328,7 +328,8 @@ supports versioning, reproducibilty, and provenance.
    (build-system ruby-build-system)
    (propagated-inputs
     `(("ruby" ,ruby)
-      ("ruby-google-api-client" ,ruby-google-api-client)))
+      ("ruby-google-api-client" ,ruby-google-api-client)
+      ("ruby-activesupport" ,ruby-activesupport)))
    (native-inputs
     `(("git" ,git)))
    (arguments
