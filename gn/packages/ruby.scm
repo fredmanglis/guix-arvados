@@ -375,9 +375,10 @@ percentage, bars of various formats, elapsed time and estimated time remaining."
       (base32
        "1i8q32a4gr0zghxylpyy7jfqwxvwrivsxflg9mks6kx92frh75mh"))))
    (build-system ruby-build-system)
+   (propagated-inputs
+    `(("ruby-public-suffix" ,ruby-public-suffix)))
    (native-inputs
-    `(("ruby-public-suffix" ,ruby-public-suffix)
-      ("ruby-rspec" ,ruby-rspec)))
+    `(("ruby-rspec" ,ruby-rspec)))
    (arguments
     `(#:tests? #f))
    (synopsis
@@ -406,7 +407,7 @@ adds support for IRIs and URI templates.
       (base32
        "1wkx9844vacsk2229xbc27djf6zw15kqd60ifr78whf9mp9v6l03"))))
    (build-system ruby-build-system)
-   (native-inputs
+   (propagated-inputs
     `(("ruby-multipart-post" ,ruby-multipart-post)))
    (arguments
     ;; No Rakefile
@@ -733,27 +734,32 @@ formatting, and more.")
        "1nzkg63s161c6jsia92c1jfwpayzbpwn588smd286idn07y0az2m"))))
    (build-system ruby-build-system)
    (propagated-inputs
-    `(("ruby-faraday" ,ruby-faraday)
-      ("ruby-jwt" ,ruby-jwt)
+    `(("ruby-os" ,ruby-os)
+      ("ruby-faraday" ,ruby-faraday)
       ("ruby-logging" ,ruby-logging)
+      ("ruby-jwt" ,ruby-jwt)
       ("ruby-memoist" ,ruby-memoist)
-      ("ruby-multi-json" ,ruby-multi-json)
-      ("ruby-os" ,ruby-os)
-      ("ruby-signet" ,ruby-signet)
+      ("ruby-signet" ,ruby-signet)))
+   (native-inputs
+    `(("ruby-multi-json" ,ruby-multi-json)
       ("ruby-rspec" ,ruby-rspec)
       ("ruby-rubocop" ,ruby-rubocop)))
    (arguments
-    `(#:tests? #f))
-   (synopsis
-    "   Allows simple authorization for accessing Google APIs.
-   Provide support for Application Default Credentials, as described at
-   https://developers.google.com/accounts/docs/application-default-credentials
-")
-   (description
-    "   Allows simple authorization for accessing Google APIs.
-   Provide support for Application Default Credentials, as described at
-   https://developers.google.com/accounts/docs/application-default-credentials
-")
+    `(#:tests? #f
+      #:phases
+      (modify-phases
+       %standard-phases
+       (add-before 'build
+		   'patch-gemspec
+		   (lambda* (#:key inputs #:allow-other-keys)
+		     (substitute* "googleauth.gemspec"
+				  (("~> 0.9") ">= 0.9")))))))
+   (synopsis "Allows simple authorization for accessing Google APIs.  Provide
+support for Application Default Credentials, as described at
+https://developers.google.com/accounts/docs/application-default-credentials")
+   (description "Allows simple authorization for accessing Google APIs.  Provide
+support for Application Default Credentials, as described at
+https://developers.google.com/accounts/docs/application-default-credentials")
    (home-page
     "https://github.com/google/google-auth-library-ruby")
    (license #f)))
@@ -978,11 +984,12 @@ formatting, and more.")
       (base32
        "0qm9rgi1j5a6nv726ka4mmixivlxfsg91h8rpp72wwd4vqbkkm07"))))
    (build-system ruby-build-system)
+   (propagated-inputs
+    `(("ruby-uber" ,ruby-uber)
+      ("ruby-declarative" ,ruby-declarative)
+      ("ruby-declarative-option" ,ruby-declarative-option)))
    (native-inputs
-    `(("ruby-declarative" ,ruby-declarative)
-      ("ruby-declarative-option" ,ruby-declarative-option)
-      ("ruby-uber" ,ruby-uber)
-      ("bundler" ,bundler)
+    `(("bundler" ,bundler)
       ("ruby-test-xml" ,ruby-test-xml)))
    (arguments
     `(;; Define remaining packages and fix any issues
@@ -1118,6 +1125,31 @@ formatting, and more.")
    (home-page "http://github.com/kamui/retriable")
    (license l:expat)))
 
+(define-public ruby-rainbow
+  (package
+  (name "ruby-rainbow")
+  (version "2.2.2")
+  (source
+    (origin
+      (method url-fetch)
+      (uri (rubygems-uri "rainbow" version))
+      (sha256
+        (base32
+          "08w2ghc5nv0kcq5b257h7dwjzjz1pqcavajfdx2xjyxqsvh2y34w"))))
+  (build-system ruby-build-system)
+  (native-inputs
+   `(("bundler" ,bundler)
+     ("ruby-rspec" ,ruby-rspec)))
+  (arguments
+   `(#:tests? #f))
+  (propagated-inputs `(("ruby-rake" ,ruby-rake)))
+  (synopsis
+    "Colorize printed text on ANSI terminals")
+  (description
+    "Colorize printed text on ANSI terminals")
+  (home-page "https://github.com/sickill/rainbow")
+  (license l:expat)))
+
 (define-public ruby-google-api-client
   (package
    (name "ruby-google-api-client")
@@ -1131,19 +1163,42 @@ formatting, and more.")
        "05aklirdmhpc4cskzajrzbhlvzramc0mv8fb5w50l3cja4lph9ng"))))
    (build-system ruby-build-system)
    (propagated-inputs
-    `(("ruby-addressable" ,ruby-addressable)
-      ("ruby-googleauth" ,ruby-googleauth)
-      ("ruby-httpclient" ,ruby-httpclient)
-      ;;("ruby-mime-types" ,ruby-mime-types)
-      ("ruby-representable" ,ruby-representable)
+    `(("ruby-representable" ,ruby-representable)
       ("ruby-retriable" ,ruby-retriable)
-      ("bundler" ,bundler)))
+      ("ruby-addressable" ,ruby-addressable)
+      ("ruby-mime-types" ,ruby-mime-types)
+      ("ruby-googleauth" ,ruby-googleauth)
+      ("ruby-httpclient" ,ruby-httpclient)))
+   (native-inputs
+    `(("bundler" ,bundler)
+      ("ruby-rainbow" ,ruby-rainbow)))
    (arguments
-    `(;; mime-types fails to build successfully
-      ;; no such file: rubocop/rake_task
-      #:tests? #f))
+    `(#:tests? #f))
    (synopsis "Client for accessing Google APIs")
    (description "Client for accessing Google APIs")
    (home-page
     "https://github.com/google/google-api-ruby-client")
+   (license #f)))
+
+(define-public ruby-os
+  (package
+   (name "ruby-os")
+   (version "1.0.0")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (rubygems-uri "os" version))
+     (sha256
+      (base32
+       "1s401gvhqgs2r8hh43ia205mxsy1wc0ib4k76wzkdpspfcnfr1rk"))))
+   (build-system ruby-build-system)
+   (native-inputs
+    `(("ruby-rspec" ,ruby-rspec)))
+   (arguments
+    `(#:tests? #f))
+   (synopsis
+    "The OS gem allows for some useful and easy functions, like OS.windows? (=&gt; true or false) OS.bits ( =&gt; 32 or 64) etc\"")
+   (description
+    "The OS gem allows for some useful and easy functions, like OS.windows? (=&gt; true or false) OS.bits ( =&gt; 32 or 64) etc\"")
+   (home-page "http://github.com/rdp/os")
    (license #f)))
