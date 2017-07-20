@@ -321,6 +321,43 @@ supports versioning, reproducibilty, and provenance.
     `(,(build-yaml-src)
       ,(build-yaml.v2-src)))))
 
+(define-public ruby-arvados
+  (package
+   (name "ruby-arvados")
+   (version "0.1.20170629115132")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (rubygems-uri "arvados" version))
+     (sha256
+      (base32
+       "10zjq51r6fd73kdp02yk7fgfv9gz291gx5m2h6ah4wvr7aaxvd3s"))))
+   (build-system ruby-build-system)
+   (propagated-inputs
+    `(("ruby-activesupport" ,ruby-activesupport-4.2.9)
+      ("ruby-andand" ,ruby-andand)
+      ("ruby-google-api-client" ,ruby-google-api-client-0.8.7)
+      ("ruby-i18n" ,ruby-i18n)
+      ("ruby-json" ,ruby-json)
+      ("ruby-jwt" ,ruby-jwt)))
+   (arguments
+    `(#:tests? #f ;; No Rakefile found
+      #:phases
+      (modify-phases
+       %standard-phases
+       (add-before
+	'build
+	'patch-gemspec
+	(lambda* _
+	  (substitute* ".gemspec"
+		       (("< 4.2.6") ">= 4.2.6")))))))
+   (synopsis
+    "Arvados client library, git commit 060d38d627bd1e51dd2b3c6e7de9af6aa7d7b6f3")
+   (description
+    "Arvados client library, git commit 060d38d627bd1e51dd2b3c6e7de9af6aa7d7b6f3")
+   (home-page "https://arvados.org")
+   (license l:asl2.0)))
+
 (define-public arvados-cli
   (package
    (inherit arvados-minimal)
@@ -328,8 +365,14 @@ supports versioning, reproducibilty, and provenance.
    (build-system ruby-build-system)
    (propagated-inputs
     `(("ruby" ,ruby)
-      ("ruby-google-api-client" ,ruby-google-api-client)
-      ("ruby-activesupport" ,ruby-activesupport)))
+      ("ruby-arvados" ,ruby-arvados)
+      ("ruby-google-api-client" ,ruby-google-api-client-0.8.7)
+      ;;("ruby-activesupport" ,ruby-activesupport)
+      ("ruby-trollop" ,ruby-trollop)
+      ("ruby-andand" ,ruby-andand)
+      ("ruby-oj" ,ruby-oj)
+      ("ruby-curb" ,ruby-curb)
+      ("ruby-json" ,ruby-json)))
    (native-inputs
     `(("git" ,git)))
    (arguments
@@ -343,14 +386,11 @@ supports versioning, reproducibilty, and provenance.
 	(lambda* _
 	  (chdir (string-append (getcwd) "/sdk/cli/"))))
        (add-before
-	'patch-usr-bin-file
+	'build
 	'patch-gemspec
-	(lambda* (#:key inputs #:allow-other-keys)
+	(lambda* _
 	  (substitute* "arvados-cli.gemspec"
 		       (("/usr/bin/git") (which "git"))
-		       ;;(("0.1.20150128223554") "0.1.19700101000000")
 		       (("~> 0.6") ">= 0.6")
-		       (("<0.8.9") ">0.8.9")
-		       (("< 5") ">= 5")
-		       (("s.add_runtime_dependency 'arvados', '~> 0.1', '>= 0.1.20150128223554'") ""))
-	  )))))))
+		       ;;(("< 5") ">= 5")
+		       (("~> 2.0") ">= 2.0")))))))))

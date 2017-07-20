@@ -2,6 +2,7 @@
 ;;; Copyright © 2017 Frederick M. Muriithi <fredmanglis@gmail.com>
 
 (define-module (gn packages ruby)
+  #:use-module (gnu packages curl)
   #:use-module (gnu packages ruby)
   #:use-module (gnu packages version-control)
   #:use-module (guix build-system ruby)
@@ -65,27 +66,27 @@ names and paths.
 
 (define-public ruby-bacon-colored-output
   (package
-  (name "ruby-bacon-colored-output")
-  (version "1.1.1")
-  (source
+   (name "ruby-bacon-colored-output")
+   (version "1.1.1")
+   (source
     (origin
-      (method url-fetch)
-      (uri (rubygems-uri "bacon-colored_output" version))
-      (sha256
-        (base32
-          "1znyh3vkfdlmf19p3k4zip88ibym41dn5g4p4n5hmks2iznb7qpx"))))
-  (build-system ruby-build-system)
-  (native-inputs
-   `(("ruby-bacon" ,ruby-bacon)
-     ("bundler" ,bundler)))
-  (arguments
-   `(#:tests? #f))
-  (synopsis
+     (method url-fetch)
+     (uri (rubygems-uri "bacon-colored_output" version))
+     (sha256
+      (base32
+       "1znyh3vkfdlmf19p3k4zip88ibym41dn5g4p4n5hmks2iznb7qpx"))))
+   (build-system ruby-build-system)
+   (native-inputs
+    `(("ruby-bacon" ,ruby-bacon)
+      ("bundler" ,bundler)))
+   (arguments
+    `(#:tests? #f))
+   (synopsis
     "Colored output for Bacon test framework! http://i.imgur.com/EpTpw.png")
-  (description
+   (description
     "Colored output for Bacon test framework! http://i.imgur.com/EpTpw.png")
-  (home-page "")
-  (license #f)))
+   (home-page "")
+   (license #f)))
 
 (define-public ruby-coveralls
   (package
@@ -494,23 +495,23 @@ manage the loading and initializing of plugins provided by other gems.")
 
 (define-public ruby-loquacious
   (package
-  (name "ruby-loquacious")
-  (version "1.9.1")
-  (source
+   (name "ruby-loquacious")
+   (version "1.9.1")
+   (source
     (origin
-      (method url-fetch)
-      (uri (rubygems-uri "loquacious" version))
-      (sha256
-        (base32
-          "0pg1k2rds6yp9gx1zg8pmfc2nb0vfmvidcq3pnc2qwwldvq3r5hz"))))
-  (build-system ruby-build-system)
-  (arguments
-   ;; Circular dependency: The tests depend on bones, which
-   ;; depends on this package
-   `(#:tests? #f))
-  (synopsis
+     (method url-fetch)
+     (uri (rubygems-uri "loquacious" version))
+     (sha256
+      (base32
+       "0pg1k2rds6yp9gx1zg8pmfc2nb0vfmvidcq3pnc2qwwldvq3r5hz"))))
+   (build-system ruby-build-system)
+   (arguments
+    ;; Circular dependency: The tests depend on bones, which
+    ;; depends on this package
+    `(#:tests? #f))
+   (synopsis
     "Descriptive configuration files for Ruby written in Ruby.")
-  (description
+   (description
     "Descriptive configuration files for Ruby written in Ruby.
 
 Loquacious provides a very open configuration system written in ruby and
@@ -554,8 +555,8 @@ Descriptions are optional, and configurations can be nested arbitrarily deep.
 
 And as you can see, descriptions can either be given inline after the value or
 they can appear above the attribute and value on their own line.")
-  (home-page "http://rubygems.org/gems/loquacious")
-  (license #f)))
+   (home-page "http://rubygems.org/gems/loquacious")
+   (license #f)))
 
 (define-public ruby-rdoc
   (package
@@ -1127,40 +1128,103 @@ https://developers.google.com/accounts/docs/application-default-credentials")
 
 (define-public ruby-rainbow
   (package
-  (name "ruby-rainbow")
-  (version "2.2.2")
-  (source
+   (name "ruby-rainbow")
+   (version "2.2.2")
+   (source
     (origin
-      (method url-fetch)
-      (uri (rubygems-uri "rainbow" version))
-      (sha256
-        (base32
-          "08w2ghc5nv0kcq5b257h7dwjzjz1pqcavajfdx2xjyxqsvh2y34w"))))
-  (build-system ruby-build-system)
-  (native-inputs
-   `(("bundler" ,bundler)
-     ("ruby-rspec" ,ruby-rspec)))
-  (arguments
-   `(#:tests? #f))
-  (propagated-inputs `(("ruby-rake" ,ruby-rake)))
-  (synopsis
+     (method url-fetch)
+     (uri (rubygems-uri "rainbow" version))
+     (sha256
+      (base32
+       "08w2ghc5nv0kcq5b257h7dwjzjz1pqcavajfdx2xjyxqsvh2y34w"))))
+   (build-system ruby-build-system)
+   (native-inputs
+    `(("bundler" ,bundler)
+      ("ruby-rspec" ,ruby-rspec)))
+   (arguments
+    `(#:tests? #f))
+   (propagated-inputs `(("ruby-rake" ,ruby-rake)))
+   (synopsis
     "Colorize printed text on ANSI terminals")
-  (description
+   (description
     "Colorize printed text on ANSI terminals")
-  (home-page "https://github.com/sickill/rainbow")
-  (license l:expat)))
+   (home-page "https://github.com/sickill/rainbow")
+   (license l:expat)))
+
+(define-public ruby-activesupport-4.2.9
+  (package
+   (inherit ruby-activesupport)
+   (name "ruby-activesupport")
+   (version "4.2.9")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (rubygems-uri "activesupport" version))
+     (sha256
+      (base32
+       "1d0a362p3m2m2kljichar2pwq0qm4vblc3njy1rdzm09ckzd45sp"))))))
+
+(define-public ruby-extlib
+  (package
+   (name "ruby-extlib")
+   (version "0.9.16")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (rubygems-uri "extlib" version))
+     (sha256
+      (base32
+       "1cbw3vgb189z3vfc1arijmsd604m3w5y5xvdfkrblc9qh7sbk2rh"))))
+   (build-system ruby-build-system)
+   (arguments
+    `(#:tests? #f))
+   (synopsis "Support library for Merb")
+   (description "Support library for Merb")
+   (home-page "http://github.com/datamapper/extlib")
+   (license #f)))
+
+(define-public ruby-autoparse
+  (package
+   (name "ruby-autoparse")
+   (version "0.3.3")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (rubygems-uri "autoparse" version))
+     (sha256
+      (base32
+       "1q5wkd8gc2ckmgry9fba4b8vxb5kr8k8gqq2wycbirgq06mbllb6"))))
+   (build-system ruby-build-system)
+   (propagated-inputs
+    `(("ruby-addressable" ,ruby-addressable)
+      ("ruby-extlib" ,ruby-extlib)
+      ("ruby-multi-json" ,ruby-multi-json)))
+   (native-inputs
+    `(("ruby-spec" ,ruby-rspec)))
+   (arguments
+    `(#:tests? #f))
+   (synopsis
+    "An implementation of the JSON Schema specification. Provides automatic parsing
+for any given JSON Schema.
+")
+   (description
+    "An implementation of the JSON Schema specification.  Provides automatic parsing
+for any given JSON Schema.
+")
+   (home-page "http://autoparse.rubyforge.org/")
+   (license #f)))
 
 (define-public ruby-google-api-client
   (package
    (name "ruby-google-api-client")
-   (version "0.13.0")
+   (version "0.13.1")
    (source
     (origin
      (method url-fetch)
      (uri (rubygems-uri "google-api-client" version))
      (sha256
       (base32
-       "05aklirdmhpc4cskzajrzbhlvzramc0mv8fb5w50l3cja4lph9ng"))))
+       "14afd1dj4wqbsi464703rcldv26fa8nh3rr1i6mdkdsdv0q0g1rp"))))
    (build-system ruby-build-system)
    (propagated-inputs
     `(("ruby-representable" ,ruby-representable)
@@ -1178,7 +1242,33 @@ https://developers.google.com/accounts/docs/application-default-credentials")
    (description "Client for accessing Google APIs")
    (home-page
     "https://github.com/google/google-api-ruby-client")
-   (license #f)))
+   (license l:asl2.0)))
+
+(define-public ruby-google-api-client-0.8.7
+  (package
+   (inherit ruby-google-api-client)
+   (name "ruby-google-api-client")
+   (version "0.8.7")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (rubygems-uri "google-api-client" version))
+     (sha256
+      (base32
+       "11wr57j9fp6x6fym4k1a7jqp72qgc8l24mfwb4y55bbvdmkv1b2d"))))
+   (propagated-inputs
+    `(("ruby-autoparse" ,ruby-autoparse)
+      ("ruby-signet" ,ruby-signet)))
+   (arguments
+    `(#:phases
+      (modify-phases
+       %standard-phases
+       (add-before
+	'build
+	'patch-gemspec
+	(lambda* _
+	  (substitute* "google-api-client.gemspec"
+		       (("~> 0.6") ">= 0.6")))))))))
 
 (define-public ruby-os
   (package
@@ -1202,3 +1292,100 @@ https://developers.google.com/accounts/docs/application-default-credentials")
     "The OS gem allows for some useful and easy functions, like OS.windows? (=&gt; true or false) OS.bits ( =&gt; 32 or 64) etc\"")
    (home-page "http://github.com/rdp/os")
    (license #f)))
+
+(define-public ruby-trollop
+  (package
+   (name "ruby-trollop")
+   (version "2.1.2")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (rubygems-uri "trollop" version))
+     (sha256
+      (base32
+       "0415y63df86sqj43c0l82and65ia5h64if7n0znkbrmi6y0jwhl8"))))
+   (build-system ruby-build-system)
+   (native-inputs
+    `(("bundler" ,bundler)))
+   (arguments
+    `(#:tests? #f))
+   (synopsis
+    "Trollop is a commandline option parser for Ruby that just
+gets out of your way. One line of code per option is all you need to write.
+For that, you get a nice automatically-generated help page, robust option
+parsing, command subcompletion, and sensible defaults for everything you don't
+specify.")
+   (description
+    "Trollop is a commandline option parser for Ruby that just
+gets out of your way.  One line of code per option is all you need to write.
+For that, you get a nice automatically-generated help page, robust option
+parsing, command subcompletion, and sensible defaults for everything you don't
+specify.")
+   (home-page "http://manageiq.github.io/trollop/")
+   (license l:expat)))
+
+(define-public ruby-andand
+  (package
+   (name "ruby-andand")
+   (version "1.3.3")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (rubygems-uri "andand" version))
+     (sha256
+      (base32
+       "0v1l14vmihx7a17gr0vrc3qfsry141ym4nbpvrazqbfhw00qlga8"))))
+   (build-system ruby-build-system)
+   (arguments
+    `(;; No Rakefile found
+      #:tests? #f))
+   (synopsis " Maybe Monad in idiomatic Ruby.")
+   (description " Maybe Monad in idiomatic Ruby.")
+   (home-page "http://github.com/raganwald/andand/")
+   (license #f)))
+
+(define-public ruby-oj
+  (package
+   (name "ruby-oj")
+   (version "3.3.2")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (rubygems-uri "oj" version))
+     (sha256
+      (base32
+       "1hp8dffxyh4pb8wihg5bgp5h26qfxr7fhnqn6slxzvh0h8hcq0d2"))))
+   (build-system ruby-build-system)
+   (arguments
+    `(;; No Rakefile found
+      #:tests? #f))
+   (synopsis
+    "The fastest JSON parser and object serializer. ")
+   (description
+    "The fastest JSON parser and object serializer. ")
+   (home-page "http://www.ohler.com/oj")
+   (license l:expat)))
+
+(define-public ruby-curb
+  (package
+   (name "ruby-curb")
+   (version "0.9.3")
+   (source
+    (origin
+     (method url-fetch)
+     (uri (rubygems-uri "curb" version))
+     (sha256
+      (base32
+       "02g00fj14fvk2dmlabcm2sysz2fkhnr10fbkrjwkza8jyw2isra2"))))
+   (build-system ruby-build-system)
+   (native-inputs
+    `(("curl" ,curl)))
+   (arguments
+    `(;; Some tests failing because the need network access
+      #:tests? #f))
+   (synopsis
+    "Curb (probably CUrl-RuBy or something) provides Ruby-language bindings for the libcurl(3), a fully-featured client-side URL transfer library. cURL and libcurl live at http://curl.haxx.se/")
+   (description
+    "Curb (probably CUrl-RuBy or something) provides Ruby-language bindings for the libcurl(3), a fully-featured client-side URL transfer library.  cURL and libcurl live at http://curl.haxx.se/")
+   (home-page "http://curb.rubyforge.org/")
+   (license l:expat)))
